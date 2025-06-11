@@ -118,6 +118,7 @@
       </div>
       <div id="clues"></div>
     </div>
+    <input id="hidden-input" class="hidden" />
     <div class="footer">
       Made by Ben Fullalove using ChatGPT and
       <a href="https://github.com/MichaelWehar/Crossword-Layout-Generator"
@@ -321,6 +322,7 @@
       function enableInputHandlers() {
         document.addEventListener("click", (e) => {
           if (!e.target.closest(".cell")) {
+            document.getElementById("hidden-input").focus();
             selectedEntry = null;
             document
               .querySelectorAll(".highlight, .active")
