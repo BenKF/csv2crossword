@@ -16,19 +16,27 @@
       .cell {
         width: 30px;
         height: 30px;
-        min-width: 30px;
-        min-height: 30px;
-        max-width: 30px;
-        max-height: 30px;
         border: 1px solid #000;
         text-align: center;
         font-size: 20px;
         position: relative;
         cursor: pointer;
         background: black;
+        padding: 0;
       }
       .cell.editable {
         background: white;
+      }
+      .cell input {
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        border: none;
+        outline: none;
+        padding: 0;
+        background: transparent;
+        font-size: 20px;
+        text-transform: uppercase;
       }
       .cell.highlight {
         background-color: #e0f7fa;
@@ -41,7 +49,7 @@
         color: black;
         pointer-events: none;
       }
-      .cell.filled {
+      .cell.filled input {
         background: #c8e6c9;
         pointer-events: none;
       }
@@ -118,7 +126,6 @@
       </div>
       <div id="clues"></div>
     </div>
-    <input id="hidden-input" class="hidden" />
     <div class="footer">
       Made by Ben Fullalove using ChatGPT and
       <a href="https://github.com/MichaelWehar/Crossword-Layout-Generator"
@@ -133,7 +140,6 @@
         selectedEntry = null;
       let CSV_URL = localStorage.getItem("csvUrl") || "";
       let CSV_TEXT = localStorage.getItem("csvText") || "";
-
       document.getElementById("csvUrl").value = CSV_URL;
 
       document.getElementById("csvFile").addEventListener("change", (e) => {
@@ -163,20 +169,13 @@
           startGame();
         });
 
-      document.getElementById("newGame").addEventListener("click", async () => {
-        location.reload();
-      });
-
+      document
+        .getElementById("newGame")
+        .addEventListener("click", () => location.reload());
       document
         .getElementById("toggle-csv-inputs")
-        .addEventListener("click", async () => {
-          if (
-            document.getElementById("csv-inputs").classList.contains("hidden")
-          ) {
-            document.getElementById("csv-inputs").classList.remove("hidden");
-          } else {
-            document.getElementById("csv-inputs").classList.add("hidden");
-          }
+        .addEventListener("click", () => {
+          document.getElementById("csv-inputs").classList.toggle("hidden");
         });
 
       async function fetchWordPairsFromUrl(url) {
@@ -199,11 +198,9 @@
         pairs = pairs.sort(() => Math.random() - 0.5);
         const chosen = pairs.slice(0, count);
         return chosen.map(({ en, tl }) => {
-          if (Math.random() < 0.5) {
-            return { clue: en, answer: tl.toUpperCase() };
-          } else {
-            return { clue: tl, answer: en.toUpperCase() };
-          }
+          return Math.random() < 0.5
+            ? { clue: en, answer: tl.toUpperCase() }
+            : { clue: tl, answer: en.toUpperCase() };
         });
       }
 
@@ -234,15 +231,16 @@
             const c = startx - 1 + dx * i;
             const td = cells[r][c];
             td.classList.add("editable");
-            const guess = document.createElement("div");
-            guess.className = "guess";
-            td.appendChild(guess);
+            const input = document.createElement("input");
+            input.maxLength = 1;
+            td.innerHTML = "";
+            td.appendChild(input);
             td.dataset.entries =
               (td.dataset.entries || "") + `${position}-${orientation},`;
           }
 
-          const r0 = starty - 1;
-          const c0 = startx - 1;
+          const r0 = starty - 1,
+            c0 = startx - 1;
           const div = document.createElement("div");
           div.className = "cluenum";
           div.textContent = position;
@@ -256,7 +254,6 @@
         const container = document.getElementById("clues");
         const across = entries.filter((e) => e.orientation === "across");
         const down = entries.filter((e) => e.orientation === "down");
-
         container.innerHTML =
           `<h3>Across</h3><ul>${across
             .map(
@@ -275,20 +272,17 @@
       function getEntryCells(entry) {
         const dx = entry.orientation === "across" ? 1 : 0;
         const dy = entry.orientation === "down" ? 1 : 0;
-        const cellsInEntry = [];
-        for (let i = 0; i < entry.answer.length; i++) {
+        return Array.from({ length: entry.answer.length }, (_, i) => {
           const r = entry.starty - 1 + dy * i;
           const c = entry.startx - 1 + dx * i;
-          const td = cells[r][c];
-          cellsInEntry.push(td);
-        }
-        return cellsInEntry;
+          return cells[r][c];
+        });
       }
 
       function highlightEntry(entry) {
-        document.querySelectorAll(".cell").forEach((td) => {
-          td.classList.remove("highlight", "active");
-        });
+        document
+          .querySelectorAll(".cell")
+          .forEach((td) => td.classList.remove("highlight", "active"));
         document
           .querySelectorAll("#clues li")
           .forEach((li) => li.classList.remove("underline"));
@@ -299,43 +293,12 @@
         if (li) li.classList.add("underline");
       }
 
-      function focusCell(cell) {
-        document
-          .querySelectorAll(".cell.active")
-          .forEach((td) => td.classList.remove("active"));
-        if (cell && !cell.classList.contains("filled")) {
-          cell.classList.add("active");
-        }
-      }
-
-      function moveFocus(entry, fromCell, direction) {
-        const entryCells = getEntryCells(entry).filter(
-          (td) => !td.classList.contains("filled")
-        );
-        const index = entryCells.indexOf(fromCell);
-        const nextIndex = index + direction;
-        if (nextIndex >= 0 && nextIndex < entryCells.length) {
-          focusCell(entryCells[nextIndex]);
-        }
-      }
-
       function enableInputHandlers() {
-        document.addEventListener("click", (e) => {
-          if (!e.target.closest(".cell")) {
-            document.getElementById("hidden-input").focus();
-            selectedEntry = null;
-            document
-              .querySelectorAll(".highlight, .active")
-              .forEach((el) => el.classList.remove("highlight", "active"));
-          }
-        });
-
         cells.flat().forEach((td) => {
           if (!td.classList.contains("editable")) return;
+
           td.addEventListener("click", (e) => {
             e.stopPropagation();
-            if (td.classList.contains("filled")) return;
-
             const options = (td.dataset.entries || "")
               .split(",")
               .filter(Boolean)
@@ -345,7 +308,6 @@
                   (e) => e.position == pos && e.orientation === orient
                 );
               });
-
             if (selectedEntry && options.includes(selectedEntry)) {
               const alt = options.find((e) => e !== selectedEntry);
               selectedEntry = alt || selectedEntry;
@@ -353,56 +315,69 @@
               selectedEntry =
                 options.find((e) => e.orientation === "across") || options[0];
             }
-
             highlightEntry(selectedEntry);
-            focusCell(td);
+          });
+
+          const input = td.querySelector("input");
+          input.addEventListener("input", (e) => {
+            input.value = input.value.toUpperCase();
+            moveNext(td);
+            checkAllEntries();
+          });
+
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace") {
+              if (input.value) {
+                input.value = "";
+              } else {
+                e.preventDefault();
+                movePrev(td);
+              }
+            }
           });
         });
+      }
 
-        document.addEventListener("keydown", (e) => {
-          const active = document.querySelector(".cell.active");
-          if (!selectedEntry || !active) return;
-          const guess = active.querySelector(".guess");
-
-          if (e.key === "Backspace") {
-            if (!guess.textContent) {
-              moveFocus(selectedEntry, active, -1);
-              const newActive = document.querySelector(".cell.active");
-              if (newActive) newActive.querySelector(".guess").textContent = "";
-            } else {
-              guess.textContent = "";
-            }
-            e.preventDefault();
+      function moveNext(currentTd) {
+        if (!selectedEntry) return;
+        const cellsInEntry = getEntryCells(selectedEntry);
+        const index = cellsInEntry.indexOf(currentTd);
+        for (let i = index + 1; i < cellsInEntry.length; i++) {
+          if (!cellsInEntry[i].classList.contains("filled")) {
+            cellsInEntry[i].querySelector("input").focus();
             return;
           }
+        }
+      }
 
-          if (
-            e.key.length === 1 &&
-            ((e.key >= "!" && e.key <= "~") || e.key == " ")
-          ) {
-            guess.textContent = e.key.toUpperCase();
-            moveFocus(selectedEntry, active, 1);
-            checkAllEntries();
-            e.preventDefault();
+      function movePrev(currentTd) {
+        if (!selectedEntry) return;
+        const cellsInEntry = getEntryCells(selectedEntry);
+        const index = cellsInEntry.indexOf(currentTd);
+        for (let i = index - 1; i >= 0; i--) {
+          if (!cellsInEntry[i].classList.contains("filled")) {
+            cellsInEntry[i].querySelector("input").value = "";
+            cellsInEntry[i].querySelector("input").focus();
+            return;
           }
-        });
+        }
       }
 
       function checkAllEntries() {
         let allDone = true;
         entries.forEach((entry) => {
           const word = getEntryCells(entry)
-            .map((td) =>
-              td.querySelector(".guess").textContent.length
-                ? td.querySelector(".guess").textContent.toUpperCase()
-                : " "
-            )
+            .map((td) => {
+              const val = td.querySelector("input").value;
+              return val ? val.toUpperCase() : " ";
+            })
             .join("");
 
           if (word === entry.answer) {
             getEntryCells(entry).forEach((td) => {
               td.classList.add("filled");
               td.classList.remove("active");
+              td.querySelector("input").blur();
             });
             const li = document.querySelector(
               `li[data-pos="${entry.position}"]`
@@ -423,14 +398,10 @@
 
       async function startGame() {
         let wordPairs = [];
-        if (CSV_TEXT) {
-          wordPairs = parseCSV(CSV_TEXT);
-        } else if (CSV_URL) {
-          wordPairs = await fetchWordPairsFromUrl(CSV_URL);
-        } else {
-          alert("Please provide a CSV file or URL.");
-          return;
-        }
+        if (CSV_TEXT) wordPairs = parseCSV(CSV_TEXT);
+        else if (CSV_URL) wordPairs = await fetchWordPairsFromUrl(CSV_URL);
+        else return alert("Please provide a CSV file or URL.");
+
         document
           .getElementById("crossword-container")
           .classList.remove("hidden");
@@ -446,10 +417,7 @@
         enableInputHandlers();
       }
 
-      // Auto-start if CSV_URL or CSV_TEXT in storage
-      if (CSV_URL || CSV_TEXT) {
-        startGame();
-      }
+      if (CSV_URL || CSV_TEXT) startGame();
     </script>
   </body>
 </html>
