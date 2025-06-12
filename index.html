@@ -218,7 +218,7 @@
         const rows = text.trim().split("\n").slice(1);
         return rows
           .map((r) => {
-            const [en, tl] = r.split(",").map((s) => s.trim());
+            const [en, tl] = r.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map((s) => s.replace(/^"(.*)"$/, '$1').trim());
             return { en, tl };
           })
           .filter((p) => p.en && p.tl);
