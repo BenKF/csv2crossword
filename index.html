@@ -117,6 +117,12 @@
           <button id="toggle-csv-inputs">Change CSV</button>
         </div>
         <div id="csv-inputs">
+          <button id="tryBtn">▶ Try it out</button><br />
+          <hr />
+          <h4>
+            How to make your own crossword from a CSV of clues and answers:
+          </h4>
+          <label>Format: clue, answer </label><br />
           <label>CSV URL:</label><br />
           <input type="text" id="csvUrl" style="width: 300px" />
           <p class="example">
@@ -125,6 +131,8 @@
           </p>
           <label>OR Upload CSV:</label><br />
           <input type="file" id="csvFile" accept=".csv" /><br />
+          <input type="checkbox" id="swapClues" value="false" />
+          <label for="swapClues">Randomly swap clues and answers?</label><br />
           <button id="startBtn">▶ Start Crossword</button>
         </div>
       </div>
@@ -144,7 +152,9 @@
         selectedEntry = null;
       let CSV_URL = localStorage.getItem("csvUrl") || "";
       let CSV_TEXT = localStorage.getItem("csvText") || "";
+      let SWAP_CLUES = localStorage.getItem("swapClues") ?? false;
       document.getElementById("csvUrl").value = CSV_URL;
+      document.getElementById("swapClues").checked = SWAP_CLUES;
 
       document.getElementById("csvFile").addEventListener("change", (e) => {
         const file = e.target.files[0];
@@ -170,8 +180,24 @@
             CSV_URL = url;
             CSV_TEXT = "";
           }
+          localStorage.setItem("swapClues", SWAP_CLUES);
           startGame();
         });
+
+      document
+        .getElementById("swapClues")
+        .addEventListener("change", async (e) => {
+          SWAP_CLUES = e.target.checked;
+        });
+
+      document.getElementById("tryBtn").addEventListener("click", async () => {
+        CSV_URL =
+          "https://docs.google.com/spreadsheets/d/1osHofMaYvKOr1dlYyfFlXz7JadkH5WEGwnx2SrxGDVU/export?format=csv&gid=328967725";
+        CSV_TEXT = "";
+        SWAP_CLUES = false;
+
+        startGame();
+      });
 
       document
         .getElementById("newGame")
@@ -202,9 +228,9 @@
         pairs = pairs.sort(() => Math.random() - 0.5);
         const chosen = pairs.slice(0, count);
         return chosen.map(({ en, tl }) => {
-          return Math.random() < 0.5
-            ? { clue: en, answer: tl.toUpperCase() }
-            : { clue: tl, answer: en.toUpperCase() };
+          return SWAP_CLUES && Math.random() < 0.5
+            ? { clue: tl, answer: en.toUpperCase() }
+            : { clue: en, answer: tl.toUpperCase() };
         });
       }
 
@@ -401,6 +427,11 @@
       }
 
       async function startGame() {
+        const loader = document.createElement("div");
+        loader.id = "loader";
+        loader.textContent = "Loading...";
+        document.getElementById("loaded-message").appendChild(loader);
+        document.getElementById("csv-inputs").classList.add("hidden");
         let wordPairs = [];
         if (CSV_TEXT) wordPairs = parseCSV(CSV_TEXT);
         else if (CSV_URL) wordPairs = await fetchWordPairsFromUrl(CSV_URL);
@@ -410,7 +441,7 @@
           .getElementById("crossword-container")
           .classList.remove("hidden");
         document.getElementById("loaded-message").classList.remove("hidden");
-        document.getElementById("csv-inputs").classList.add("hidden");
+        document.getElementById("loader").remove();
 
         const puzzleData = preparePuzzle(wordPairs, 10);
         const layout = generateLayout(puzzleData);
