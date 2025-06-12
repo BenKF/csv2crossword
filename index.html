@@ -263,7 +263,7 @@
             td.classList.add("editable");
             const input = document.createElement("input");
             input.maxLength = 1;
-            td.innerHTML = "";
+            td.querySelector("input")?.remove();
             td.appendChild(input);
             td.dataset.entries =
               (td.dataset.entries || "") + `${position}-${orientation},`;
