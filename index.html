@@ -103,6 +103,87 @@
         font-size: small;
         margin-top: 20px;
       }
+
+      @media only screen and (max-width: 600px) {
+        li.underline {
+          color: white;
+          text-decoration: none;
+          list-style-type: none;
+        }
+
+        div#clues {
+          background: dimgrey;
+          width: 100%;
+          max-width: unset;
+          height: 40px;
+          margin-top: 0px;
+          position: absolute;
+
+          ul {
+            margin: 10px;
+            padding-left: 10px;
+          }
+        }
+
+        .body > div {
+          margin-top: 40px;
+        }
+
+        body {
+          margin: 0;
+          background: grey;
+          color: white;
+        }
+
+        a {
+          color: lightblue;
+        }
+
+        #clues h3,
+        li:not(.underline) {
+          display: none;
+        }
+
+        div#crossword-container {
+          width: auto;
+        }
+
+        div#csv-inputs {
+          background: dimgrey;
+        }
+
+        td.cell {
+          width: auto;
+          height: auto;
+          max-width: unset;
+          max-height: unset;
+          min-width: unset;
+          min-height: unset;
+
+          &:after,
+          &:before {
+            content: "";
+
+            display: block;
+            padding-bottom: calc(50% - 0.5em);
+          }
+        }
+
+        div#loaded-message {
+          padding: 10px;
+        }
+
+        .footer {
+          padding: 10px;
+          background: dimgrey;
+        }
+
+        .cluenum {
+          left: 0.5vw;
+          font-size: 2vw;
+          text-align: left;
+        }
+      }
     </style>
   </head>
   <body>
@@ -218,7 +299,9 @@
         const rows = text.trim().split("\n").slice(1);
         return rows
           .map((r) => {
-            const [en, tl] = r.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map((s) => s.replace(/^"(.*)"$/, '$1').trim());
+            const [en, tl] = r
+              .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+              .map((s) => s.replace(/^"(.*)"$/, "$1").trim());
             return { en, tl };
           })
           .filter((p) => p.en && p.tl);
