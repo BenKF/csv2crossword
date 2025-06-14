@@ -14,13 +14,15 @@
       table {
         border-collapse: collapse;
       }
+
+      .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(0px, 1fr));
+      }
+
       .cell {
-        width: 30px;
-        height: 30px;
-        min-width: 30px;
-        min-height: 30px;
-        max-width: 30px;
-        max-height: 30px;
+        aspect-ratio: 1/ 1;
+        height: 100%;
         border: 1px solid #000;
         text-align: center;
         font-size: 20px;
@@ -77,13 +79,15 @@
       }
       button {
         margin-top: 10px;
+        border-radius: 25px;
+        border: 2px solid grey;
       }
       .hidden {
         display: none;
       }
       #crossword-container {
         border: 30px solid black;
-        width: fit-content;
+        background: black;
       }
       #csv-inputs {
         border: 1px solid black;
@@ -94,15 +98,23 @@
         margin-top: 0;
         font-size: small;
         font-style: italic;
+        user-select: text;
       }
       .body {
         display: flex;
         gap: 40px;
         user-select: none;
+        & > div {
+          width: 100%;
+          max-width: 50vw;
+        }
       }
       .footer {
         font-size: small;
         margin-top: 20px;
+      }
+      img {
+        width: 100%;
       }
 
       @media only screen and (max-width: 768px) {
@@ -128,6 +140,7 @@
 
         .body > div {
           margin-top: 40px;
+          max-width: unset;
         }
 
         body {
@@ -153,20 +166,11 @@
           background: dimgrey;
         }
 
-        td.cell {
+        .cell {
           width: auto;
-          height: auto;
-          max-width: unset;
-          max-height: unset;
-          min-width: unset;
-          min-height: unset;
 
-          &:after,
-          &:before {
-            content: "";
-
-            display: block;
-            padding-bottom: calc(50% - 0.5em);
+          input {
+            font-size: 5vw;
           }
         }
 
@@ -174,6 +178,9 @@
           padding: 10px;
         }
 
+        #newGame {
+          margin-left: 10px;
+        }
         .footer {
           padding: 10px;
           background: dimgrey;
@@ -201,18 +208,16 @@
         <div id="csv-inputs">
           <button id="tryBtn">▶ Try it out</button><br />
           <hr />
-          <h4>
-            How to make your own crossword from a CSV of clues and answers:
-          </h4>
-          <label>Format: clue, answer </label><br />
-          <label>CSV URL:</label><br />
+          <label>Make a column of clues and a column of answers</label><br />
+          <img src="example-crossword-csv-screenshot.png" /><br />
+          <label>Load your CSV from a URL:</label><br />
           <input type="text" id="csvUrl" style="width: 300px" />
           <p class="example">
             e.g.
             https://docs.google.com/spreadsheets/d/abc123/export?format=csv&gid=123
           </p>
-          <label>OR Upload CSV:</label><br />
-          <input type="file" id="csvFile" accept=".csv" /><br />
+          <label>-OR- Load your CSV from a file:</label><br />
+          <input type="file" id="csvFile" accept=".csv" /><br /><br />
           <input type="checkbox" id="swapClues" value="false" />
           <label for="swapClues">Randomly swap clues and answers?</label><br />
           <button id="startBtn">▶ Start Crossword</button>
@@ -321,18 +326,22 @@
       function renderGrid(rows, cols, entries) {
         const container = document.getElementById("crossword-container");
         container.innerHTML = "";
-        const table = document.createElement("table");
+        const table = document.createElement("div");
+        table.className = "table";
         cells = Array.from({ length: rows }, () => Array(cols).fill(null));
 
         for (let r = 0; r < rows; r++) {
-          const tr = table.insertRow();
+          const tr = document.createElement("div");
+          tr.className = "row";
           for (let c = 0; c < cols; c++) {
-            const td = tr.insertCell();
+            const td = document.createElement("div");
             td.className = "cell";
             td.dataset.r = r;
             td.dataset.c = c;
             cells[r][c] = td;
+            tr.appendChild(td);
           }
+          table.appendChild(tr);
         }
 
         entries.forEach((entry) => {
