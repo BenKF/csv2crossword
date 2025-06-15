@@ -50,6 +50,9 @@
       li.highlight {
         background-color: #e0f7fa;
       }
+      .cell.focus {
+        background-color: #b8e8ee;
+      }
       .cluenum {
         position: absolute;
         top: 0;
@@ -87,6 +90,13 @@
         margin-top: 10px;
         border-radius: 25px;
         border: 2px solid grey;
+        &.reveal-cell {
+          margin: 0;
+        }
+      }
+      li:not(.highlight) .reveal-cell,
+      li.strike .reveal-cell {
+        display: none;
       }
       .hidden {
         display: none;
@@ -382,19 +392,61 @@
         const container = document.getElementById("clues");
         const across = entries.filter((e) => e.orientation === "across");
         const down = entries.filter((e) => e.orientation === "down");
-        container.innerHTML =
-          `<h3>Across</h3><ul>${across
-            .map(
-              (e) =>
-                `<li data-pos="${e.position}" data-orient="across">${e.position}. ${e.clue}</li>`
-            )
-            .join("")}</ul>` +
-          `<h3>Down</h3><ul>${down
-            .map(
-              (e) =>
-                `<li data-pos="${e.position}" data-orient="down">${e.position}. ${e.clue}</li>`
-            )
-            .join("")}</ul>`;
+        container.innerHTML = `
+        <h3>Across</h3><ul>${across
+          .map(
+            (e) => `
+          <li data-pos="${e.position}" data-orient="across">
+            ${e.position}. ${e.clue}
+            <button class="reveal-cell" data-pos="${e.position}" data-orient="across">Reveal Cell</button>
+          </li>`
+          )
+          .join("")}</ul>
+        <h3>Down</h3><ul>${down
+          .map(
+            (e) => `
+          <li data-pos="${e.position}" data-orient="down">
+            ${e.position}. ${e.clue}
+            <button class="reveal-cell" data-pos="${e.position}" data-orient="down">Reveal Cell</button>
+          </li>`
+          )
+          .join("")}</ul>
+      `;
+
+        document.querySelectorAll(".reveal-cell").forEach((button) => {
+          button.addEventListener("click", () => {
+            if (confirm("Reveal the selected cell?")) {
+              const focusedCell = document.querySelector(".cell.focus");
+              if (!focusedCell) {
+                alert("No cell is currently focused.");
+                return;
+              }
+              const pos = button.dataset.pos;
+              const orient = button.dataset.orient;
+              const entry = entries.find(
+                (e) => e.position == pos && e.orientation === orient
+              );
+              if (!entry) return;
+
+              const entryCells = getEntryCells(entry);
+              const index = entryCells.indexOf(focusedCell);
+              if (index === -1) {
+                alert("Focused cell is not part of this clue.");
+                return;
+              }
+              const cell = entryCells[index];
+              const input = cell.querySelector("input");
+              if (!input.value) {
+                input.value = entry.answer[index];
+                input.classList.add("revealed");
+                cell.classList.add("filled");
+                cell.classList.remove("active");
+                input.blur();
+              }
+              checkAllEntries();
+            }
+          });
+        });
       }
 
       function getEntryCells(entry) {
@@ -410,10 +462,10 @@
       function highlightEntry(entry) {
         document
           .querySelectorAll(".cell")
-          .forEach((td) => td.classList.remove("highlight", "active"));
+          .forEach((td) => td.classList.remove("highlight", "active", "focus"));
         document
           .querySelectorAll("#clues li")
-          .forEach((li) => li.classList.remove("highlight"));
+          .forEach((li) => li.classList.remove("highlight", "focus"));
         getEntryCells(entry).forEach((td) => td.classList.add("highlight"));
         const li = document.querySelector(
           `#clues li[data-pos='${entry.position}'][data-orient='${entry.orientation}']`
@@ -444,6 +496,7 @@
                 options.find((e) => e.orientation === "across") || options[0];
             }
             highlightEntry(selectedEntry);
+            td.classList.add("focus");
           });
 
           const input = td.querySelector("input");
