@@ -65,6 +65,10 @@
         background: #c8e6c9;
         pointer-events: none;
       }
+      .cell.revealed input {
+        background: #fffed3;
+        pointer-events: none;
+      }
       .cell.active {
         outline: 2px solid lightskyblue;
         z-index: 1;
@@ -90,12 +94,12 @@
         margin-top: 10px;
         border-radius: 25px;
         border: 2px solid grey;
-        &.reveal-cell {
+        &.reveal-letter {
           margin: 0;
         }
       }
-      li:not(.highlight) .reveal-cell,
-      li.strike .reveal-cell {
+      li:not(.highlight) .reveal-letter,
+      li.strike .reveal-letter {
         display: none;
       }
       .hidden {
@@ -145,7 +149,7 @@
           max-width: unset;
           height: 40px;
           margin-top: 0px;
-          position: absolute;
+          position: fixed;
 
           ul {
             margin: 10px;
@@ -346,17 +350,17 @@
         cells = Array.from({ length: rows }, () => Array(cols).fill(null));
 
         for (let r = 0; r < rows; r++) {
-          const tr = document.createElement("div");
-          tr.className = "row";
+          const row = document.createElement("div");
+          row.className = "row";
           for (let c = 0; c < cols; c++) {
-            const td = document.createElement("div");
-            td.className = "cell";
-            td.dataset.r = r;
-            td.dataset.c = c;
-            cells[r][c] = td;
-            tr.appendChild(td);
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.dataset.r = r;
+            cell.dataset.c = c;
+            cells[r][c] = cell;
+            row.appendChild(cell);
           }
-          table.appendChild(tr);
+          table.appendChild(row);
         }
 
         entries.forEach((entry) => {
@@ -367,14 +371,14 @@
           for (let i = 0; i < answer.length; i++) {
             const r = starty - 1 + dy * i;
             const c = startx - 1 + dx * i;
-            const td = cells[r][c];
-            td.classList.add("editable");
+            const cell = cells[r][c];
+            cell.classList.add("editable");
             const input = document.createElement("input");
-            input.maxLength = 1;
-            td.querySelector("input")?.remove();
-            td.appendChild(input);
-            td.dataset.entries =
-              (td.dataset.entries || "") + `${position}-${orientation},`;
+            input.autocomplete = "off";
+            cell.querySelector("input")?.remove();
+            cell.appendChild(input);
+            cell.dataset.entries =
+              (cell.dataset.entries || "") + `${position}-${orientation},`;
           }
 
           const r0 = starty - 1,
@@ -398,7 +402,7 @@
             (e) => `
           <li data-pos="${e.position}" data-orient="across">
             ${e.position}. ${e.clue}
-            <button class="reveal-cell" data-pos="${e.position}" data-orient="across">Reveal Cell</button>
+            <button class="reveal-letter" data-pos="${e.position}" data-orient="across">Reveal Letter</button>
           </li>`
           )
           .join("")}</ul>
@@ -407,18 +411,18 @@
             (e) => `
           <li data-pos="${e.position}" data-orient="down">
             ${e.position}. ${e.clue}
-            <button class="reveal-cell" data-pos="${e.position}" data-orient="down">Reveal Cell</button>
+            <button class="reveal-letter" data-pos="${e.position}" data-orient="down">Reveal Letter</button>
           </li>`
           )
           .join("")}</ul>
       `;
 
-        document.querySelectorAll(".reveal-cell").forEach((button) => {
+        document.querySelectorAll(".reveal-letter").forEach((button) => {
           button.addEventListener("click", () => {
-            if (confirm("Reveal the selected cell?")) {
+            if (confirm("Reveal the selected letter?")) {
               const focusedCell = document.querySelector(".cell.focus");
               if (!focusedCell) {
-                alert("No cell is currently focused.");
+                alert("No letter is currently focused.");
                 return;
               }
               const pos = button.dataset.pos;
@@ -431,18 +435,19 @@
               const entryCells = getEntryCells(entry);
               const index = entryCells.indexOf(focusedCell);
               if (index === -1) {
-                alert("Focused cell is not part of this clue.");
+                alert("Focused letter is not part of this clue.");
                 return;
               }
               const cell = entryCells[index];
               const input = cell.querySelector("input");
-              if (!input.value) {
+              if (!input.classList.contains("revealed")) {
                 input.value = entry.answer[index];
-                input.classList.add("revealed");
+                cell.classList.add("revealed");
                 cell.classList.add("filled");
                 cell.classList.remove("active");
                 input.blur();
               }
+              moveNext(cell);
               checkAllEntries();
             }
           });
@@ -462,11 +467,11 @@
       function highlightEntry(entry) {
         document
           .querySelectorAll(".cell")
-          .forEach((td) => td.classList.remove("highlight", "active", "focus"));
+          .forEach((cell) => cell.classList.remove("highlight", "active"));
         document
           .querySelectorAll("#clues li")
-          .forEach((li) => li.classList.remove("highlight", "focus"));
-        getEntryCells(entry).forEach((td) => td.classList.add("highlight"));
+          .forEach((li) => li.classList.remove("highlight"));
+        getEntryCells(entry).forEach((cell) => cell.classList.add("highlight"));
         const li = document.querySelector(
           `#clues li[data-pos='${entry.position}'][data-orient='${entry.orientation}']`
         );
@@ -474,12 +479,12 @@
       }
 
       function enableInputHandlers() {
-        cells.flat().forEach((td) => {
-          if (!td.classList.contains("editable")) return;
+        cells.flat().forEach((cell) => {
+          if (!cell.classList.contains("editable")) return;
 
-          td.addEventListener("click", (e) => {
+          cell.addEventListener("click", (e) => {
             e.stopPropagation();
-            const options = (td.dataset.entries || "")
+            const options = (cell.dataset.entries || "")
               .split(",")
               .filter(Boolean)
               .map((id) => {
@@ -495,14 +500,16 @@
               selectedEntry =
                 options.find((e) => e.orientation === "across") || options[0];
             }
+            if (cell.classList.contains("filled")) {
+              document.querySelector(".cell.focus").classList.remove("focus");
+            }
             highlightEntry(selectedEntry);
-            td.classList.add("focus");
           });
 
-          const input = td.querySelector("input");
+          const input = cell.querySelector("input");
           input.addEventListener("input", (e) => {
-            input.value = input.value.toUpperCase();
-            moveNext(td);
+            input.value = input.value.slice(-1).toUpperCase();
+            moveNext(cell);
             checkAllEntries();
           });
 
@@ -512,9 +519,16 @@
                 input.value = "";
               } else {
                 e.preventDefault();
-                movePrev(td);
+                movePrev(cell);
               }
             }
+          });
+
+          input.addEventListener("focus", (e) => {
+            document
+              .querySelectorAll(".cell")
+              .forEach((c) => c.classList.remove("focus"));
+            cell.classList.add("focus");
           });
         });
       }
@@ -548,17 +562,17 @@
         let allDone = true;
         entries.forEach((entry) => {
           const word = getEntryCells(entry)
-            .map((td) => {
-              const val = td.querySelector("input").value;
+            .map((cell) => {
+              const val = cell.querySelector("input").value;
               return val ? val.toUpperCase() : " ";
             })
             .join("");
 
           if (word === entry.answer) {
-            getEntryCells(entry).forEach((td) => {
-              td.classList.add("filled");
-              td.classList.remove("active");
-              td.querySelector("input").blur();
+            getEntryCells(entry).forEach((cell) => {
+              cell.classList.add("filled");
+              cell.classList.remove("active");
+              cell.querySelector("input").blur();
             });
             const li = document.querySelector(
               `li[data-pos="${entry.position}"][data-orient="${entry.orientation}"]`
