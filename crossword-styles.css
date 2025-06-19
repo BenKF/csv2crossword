@@ -1,0 +1,209 @@
+body {
+  font-family: sans-serif;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0px, 1fr));
+}
+
+.cell {
+  aspect-ratio: 1/ 1;
+  height: 100%;
+  border: 1px solid #000;
+  text-align: center;
+  font-size: 20px;
+  position: relative;
+  cursor: pointer;
+  background: black;
+  padding: 0;
+}
+.cell.editable {
+  background: white;
+}
+.cell input {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  border: none;
+  outline: none;
+  padding: 0;
+  background: transparent;
+  font-size: 20px;
+  text-transform: uppercase;
+  vertical-align: text-top;
+}
+.cell.highlight,
+li.highlight {
+  background-color: #e0f7fa;
+}
+.cell.focus {
+  background-color: #b8e8ee;
+}
+
+.cell.filled input {
+  background: #c8e6c9;
+  pointer-events: none;
+}
+.cell.revealed input {
+  background: #fffed3;
+  pointer-events: none;
+}
+.cell.active {
+  outline: 2px solid lightskyblue;
+  z-index: 1;
+}
+
+.cluenum {
+  position: absolute;
+  top: 0;
+  left: 2px;
+  font-size: 10px;
+  color: black;
+  pointer-events: none;
+}
+
+#clues {
+  max-width: 300px;
+}
+ul {
+  padding: 0;
+  margin-top: 0;
+}
+li {
+  list-style-type: none;
+  &.strike {
+    text-decoration: line-through;
+    color: gray;
+  }
+}
+h3 {
+  margin-bottom: 5px;
+}
+button {
+  margin-top: 10px;
+  border-radius: 25px;
+  border: 2px solid grey;
+  &.reveal-letter {
+    margin: 0;
+  }
+}
+li:not(.highlight) .reveal-letter,
+li.strike .reveal-letter {
+  display: none;
+}
+.hidden {
+  display: none;
+}
+#crossword-container {
+  border: 30px solid black;
+  background: black;
+}
+#csv-inputs {
+  border: 1px solid black;
+  padding: 10px;
+  margin-top: 10px;
+}
+.example {
+  margin-top: 0;
+  font-size: small;
+  font-style: italic;
+  user-select: text;
+}
+.body {
+  display: flex;
+  gap: 40px;
+  user-select: none;
+  & > div {
+    width: 100%;
+    max-width: 50vw;
+  }
+}
+.footer {
+  font-size: small;
+  margin-top: 20px;
+}
+img {
+  width: 100%;
+}
+#csvUrl {
+  width: calc(100% - 8px);
+}
+
+@media only screen and (max-width: 768px) {
+  li.highlight {
+    background-color: unset;
+    color: white;
+  }
+
+  div#clues {
+    background: dimgrey;
+    width: 100%;
+    max-width: unset;
+    height: 40px;
+    margin-top: 0px;
+    position: fixed;
+
+    ul {
+      margin: 10px;
+      padding-left: 10px;
+    }
+  }
+
+  .body > div {
+    margin-top: 40px;
+    max-width: unset;
+  }
+
+  body {
+    margin: 0;
+    background: grey;
+    color: white;
+  }
+
+  a {
+    color: lightblue;
+  }
+
+  #clues h3,
+  li:not(.highlight) {
+    display: none;
+  }
+
+  div#crossword-container {
+    width: auto;
+  }
+
+  div#csv-inputs {
+    background: dimgrey;
+  }
+
+  .cell {
+    width: auto;
+
+    input {
+      font-size: min(5vw, 20px);
+    }
+  }
+
+  div#loaded-message {
+    padding: 10px;
+  }
+
+  #newGame {
+    margin-left: 10px;
+  }
+  .footer {
+    padding: 10px;
+    background: dimgrey;
+  }
+
+  .cluenum {
+    left: 0.5vw;
+    font-size: 2vw;
+    text-align: left;
+  }
+}
