@@ -66,7 +66,7 @@ function parseCSV(text) {
       const [clue, answer] = r
         .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
         .map((s) => s.replace(/^"(.*)"$/, "$1").trim());
-      return { answer: clue, clue: answer };
+      return { answer, clue };
     })
     .filter((p) => p.clue && p.answer);
 }
@@ -331,19 +331,14 @@ function checkAllEntries() {
 }
 
 async function startGame() {
-  const loader = document.createElement("div");
-  loader.id = "loader";
-  loader.textContent = "Loading...";
-  document.getElementById("loaded-message").appendChild(loader);
   document.getElementById("csv-inputs").classList.add("hidden");
+  document.getElementById("crossword-container").classList.remove("hidden");
   let wordPairs = [];
   if (CSV_TEXT) wordPairs = parseCSV(CSV_TEXT);
   else if (CSV_URL) wordPairs = await fetchWordPairsFromUrl(CSV_URL);
   else return alert("Please provide a CSV file or URL.");
 
-  document.getElementById("crossword-container").classList.remove("hidden");
   document.getElementById("loaded-message").classList.remove("hidden");
-  document.getElementById("loader").remove();
 
   const puzzleData = preparePuzzle(wordPairs, 10);
   const layout = generateLayout(puzzleData);
