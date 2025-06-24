@@ -160,7 +160,7 @@ button#tryBtn {
 
 li:not(.highlight) .reveal-letter,
 li.strike .reveal-letter {
-  display: none;
+  visibility: hidden;
 }
 .hidden {
   display: none;
