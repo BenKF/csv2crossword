@@ -83,7 +83,7 @@ function preparePuzzle(pairs, count = 10) {
 
 function renderGrid(rows, cols, entries) {
   const container = document.getElementById("crossword-container");
-  container.innerHTML = "";
+  container.querySelector(".loader").classList.add("hidden");
   const table = document.createElement("div");
   table.className = "table";
   cells = Array.from({ length: rows }, () => Array(cols).fill(null));
@@ -332,7 +332,10 @@ function checkAllEntries() {
 
 async function startGame() {
   document.getElementById("csv-inputs").classList.add("hidden");
-  document.getElementById("crossword-container").classList.remove("hidden");
+  var container = document.getElementById("crossword-container");
+  container.classList.remove("hidden");
+  container.querySelector(".loader").classList.remove("hidden");
+  container.querySelector(".table")?.remove();
   let wordPairs = [];
   if (CSV_TEXT) wordPairs = parseCSV(CSV_TEXT);
   else if (CSV_URL) wordPairs = await fetchWordPairsFromUrl(CSV_URL);
