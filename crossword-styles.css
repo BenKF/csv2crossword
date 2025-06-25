@@ -84,6 +84,7 @@ body {
   background: transparent;
   font-size: 20px;
   text-transform: uppercase;
+  vertical-align: top;
 }
 .cell.highlight,
 li.highlight {
