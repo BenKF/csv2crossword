@@ -247,7 +247,7 @@ function enableInputHandlers() {
 
     const input = cell.querySelector("input");
     input.addEventListener("input", (e) => {
-      input.value = input.value.slice(-1).toUpperCase();
+      input.value = e.data.toUpperCase();
       moveNext(cell);
       checkAllEntries();
     });

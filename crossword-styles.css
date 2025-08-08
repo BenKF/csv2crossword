@@ -205,6 +205,9 @@ img {
   li.highlight {
     background-color: unset;
     color: white;
+    white-space: nowrap;
+    overflow: auto;
+    scrollbar-width: none;
   }
 
   div#clues {
