@@ -349,7 +349,11 @@ async function startGame() {
   let wordPairs = [];
   if (CSV_TEXT) wordPairs = parseCSV(CSV_TEXT);
   else if (CSV_URL) wordPairs = await fetchWordPairsFromUrl(CSV_URL);
-  else return alert("Please provide a CSV file or URL.");
+  else {
+    alert("Please provide a CSV file or URL.");
+    window.location.reload();
+    return;
+  }
 
   document.getElementById("loaded-message").classList.remove("hidden");
 
