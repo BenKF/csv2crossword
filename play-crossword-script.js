@@ -114,6 +114,7 @@ function renderGrid(rows, cols, entries) {
       cell.classList.add("editable");
       const input = document.createElement("input");
       input.autocomplete = "off";
+      input.maxLength = 1;
       cell.querySelector("input")?.remove();
       cell.appendChild(input);
       cell.dataset.entries =
@@ -268,6 +269,15 @@ function enableInputHandlers() {
         .querySelectorAll(".cell")
         .forEach((c) => c.classList.remove("focus"));
       cell.classList.add("focus");
+      input.placeholder = input.value;
+      input.value = "";
+    });
+
+    input.addEventListener("blur", (e) => {
+      if (input.value === "") {
+        input.value = input.placeholder;
+        input.placeholder = "";
+      }
     });
   });
 }
