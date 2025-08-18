@@ -284,6 +284,7 @@ function enableInputHandlers() {
 
 function moveNext(currentTd) {
   if (!selectedEntry) return;
+  currentTd.querySelector("input").blur();
   const cellsInEntry = getEntryCells(selectedEntry);
   const index = cellsInEntry.indexOf(currentTd);
   for (let i = index + 1; i < cellsInEntry.length; i++) {
@@ -312,7 +313,9 @@ function checkAllEntries() {
   entries.forEach((entry) => {
     const word = getEntryCells(entry)
       .map((cell) => {
-        const val = cell.querySelector("input").value;
+        const val =
+          cell.querySelector("input").value ||
+          cell.querySelector("input").placeholder;
         return val ? val.toUpperCase() : " ";
       })
       .join("");
