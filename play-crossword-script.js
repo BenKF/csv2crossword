@@ -191,6 +191,20 @@ function renderClues(entries) {
       }
     });
   });
+
+  document.querySelectorAll("#clues li").forEach((li) => {
+    li.addEventListener("click", (e) => {
+      const pos = li.dataset.pos;
+      const orient = li.dataset.orient;
+      const entry = entries.find(
+        (e) => e.position == pos && e.orientation === orient
+      );
+      if (entry) {
+        document.querySelector(".cell.focus")?.classList?.remove("focus");
+        highlightEntry(entry);
+      }
+    });
+  });
 }
 
 function getEntryCells(entry) {
