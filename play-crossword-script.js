@@ -185,7 +185,6 @@ function renderClues(entries) {
           cell.classList.add("revealed");
           cell.classList.add("filled");
           cell.classList.remove("active");
-          input.blur();
         }
         moveNext(cell);
         checkAllEntries();
@@ -255,12 +254,9 @@ function enableInputHandlers() {
 
     input.addEventListener("keydown", (e) => {
       if (e.key === "Backspace") {
-        if (input.value) {
-          input.value = "";
-        } else {
-          e.preventDefault();
-          movePrev(cell);
-        }
+        input.placeholder = "";
+        movePrev(cell);
+        e.preventDefault();
       }
     });
 
@@ -301,7 +297,6 @@ function movePrev(currentTd) {
   const index = cellsInEntry.indexOf(currentTd);
   for (let i = index - 1; i >= 0; i--) {
     if (!cellsInEntry[i].classList.contains("filled")) {
-      cellsInEntry[i].querySelector("input").value = "";
       cellsInEntry[i].querySelector("input").focus();
       return;
     }
