@@ -240,7 +240,7 @@ function enableInputHandlers() {
           options.find((e) => e.orientation === "across") || options[0];
       }
       if (cell.classList.contains("filled")) {
-        document.querySelector(".cell.focus").classList.remove("focus");
+        document.querySelector(".cell.focus")?.classList?.remove("focus");
       }
       highlightEntry(selectedEntry);
     });
